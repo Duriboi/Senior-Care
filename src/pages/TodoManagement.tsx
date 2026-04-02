@@ -19,6 +19,12 @@ import { AddTodoModal } from '@/components/AddTodoModal';
 export default function TodoManagement() {
   const [selectedSenior, setSelectedSenior] = useState('김순자');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [modalInitialType, setModalInitialType] = useState<'med' | 'vital' | 'meal' | 'emotion' | undefined>();
+
+  const openModalWithType = (type?: 'med' | 'vital' | 'meal' | 'emotion') => {
+    setModalInitialType(type);
+    setIsAddModalOpen(true);
+  };
 
   const seniors = [
     { name: '김순자', age: 78, gender: '여', status: '주의', color: 'error', photo: 'https://images.unsplash.com/photo-1552699611-e2c208d5d9cf?auto=format&fit=crop&q=80&w=100&h=100' },
@@ -81,7 +87,7 @@ export default function TodoManagement() {
               기록 보기
             </button>
             <button 
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => openModalWithType()}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
             >
               <Plus size={18} />
@@ -159,14 +165,14 @@ export default function TodoManagement() {
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { label: '복약 지도', desc: '약 알림 등록', icon: Pill, color: 'primary' },
-                    { label: '활력징후', desc: '혈압/혈당 체크', icon: Activity, color: 'error' },
-                    { label: '식사기록', desc: '영양 섭취 확인', icon: Utensils, color: 'tertiary' },
-                    { label: '정서지원', desc: '기분/안부 확인', icon: Smile, color: 'secondary' }
+                    { id: 'med', label: '복약 지도', desc: '약 알림 등록', icon: Pill, color: 'primary' },
+                    { id: 'vital', label: '활력징후', desc: '혈압/혈당 체크', icon: Activity, color: 'error' },
+                    { id: 'meal', label: '식사기록', desc: '영양 섭취 확인', icon: Utensils, color: 'tertiary' },
+                    { id: 'emotion', label: '정서지원', desc: '기분/안부 확인', icon: Smile, color: 'secondary' }
                   ].map((item, i) => (
                     <button 
                       key={i} 
-                      onClick={() => setIsAddModalOpen(true)}
+                      onClick={() => openModalWithType(item.id as any)}
                       className="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all hover:scale-[1.02] border border-transparent hover:border-slate-100"
                     >
                       <div className={cn(
@@ -204,29 +210,14 @@ export default function TodoManagement() {
             </div>
           </div>
 
-          {/* Bottom CTA */}
-          <div className="pt-6 pb-12">
-            <div className="bg-slate-900 p-10 rounded-3xl text-center space-y-6 shadow-2xl">
-              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto">
-                <Plus className="text-white" size={32} />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-white">새로운 과업을 할당하시겠습니까?</h3>
-                <p className="text-sm text-slate-400 font-medium max-w-md mx-auto">기존 템플릿을 사용하거나 사용자 맞춤형 과업을 직접 설정하여 시니어분들의 케어 질을 높일 수 있습니다.</p>
-              </div>
-              <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="bg-primary text-white px-12 py-4 rounded-2xl font-black shadow-xl hover:shadow-primary/20 transition-all hover:-translate-y-1 flex items-center gap-3 mx-auto"
-              >
-                <Plus size={20} />
-                새로운 TODO 만들기
-              </button>
-            </div>
-          </div>
         </div>
       </section>
 
-      <AddTodoModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddTodoModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+        initialType={modalInitialType}
+      />
     </div>
   );
 }

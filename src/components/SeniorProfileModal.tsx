@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Edit, Download, Activity, Droplets, Info, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { X, Edit, Download, Activity, Droplets, Info, ChevronRight, Loader2 } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { generateHealthSummary } from '../services/geminiService';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,6 +11,30 @@ interface ModalProps {
 }
 
 export function SeniorProfileModal({ isOpen, onClose, senior }: ModalProps) {
+  const [aiSummary, setAiSummary] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && senior) {
+      const fetchAiSummary = async () => {
+        setIsLoading(true);
+        // 실제 어르신의 데이터를 기반으로 AI 분석 요청
+        const summary = await generateHealthSummary({
+          name: senior.name,
+          age: senior.age,
+          bloodPressure: ['165/105', '142/92', '138/88'], // 예시 데이터
+          bloodGlucose: ['115', '152', '108'], // 예시 데이터
+          notes: senior.status || ""
+        });
+        setAiSummary(summary);
+        setIsLoading(false);
+      };
+      fetchAiSummary();
+    } else {
+      setAiSummary("");
+    }
+  }, [isOpen, senior]);
+
   if (!isOpen) return null;
 
   return (
@@ -37,7 +62,7 @@ export function SeniorProfileModal({ isOpen, onClose, senior }: ModalProps) {
               <div className="absolute bottom-1 right-1 w-6 h-6 bg-tertiary border-2 border-white rounded-full"></div>
             </div>
             <h3 className="text-2xl font-black text-slate-900 text-center mb-1">{senior.name} ({senior.age}세)</h3>
-            <p className="text-slate-500 font-bold text-sm mb-6 text-center">{senior.room} (집중관리)</p>
+            <p className="text-slate-500 font-bold text-sm mb-6 text-center">{senior.room || "302호"} (집중관리)</p>
             
             <div className="w-full space-y-4 pt-6 border-t border-slate-200">
               <div className="space-y-1">
@@ -67,7 +92,7 @@ export function SeniorProfileModal({ isOpen, onClose, senior }: ModalProps) {
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h4 className="text-xl font-black text-slate-900">어르신 맞춤 건강 현황</h4>
-                <p className="text-slate-400 text-sm font-medium">최근 업데이트: 2분 전</p>
+                <p className="text-slate-400 text-sm font-medium">최근 업데이트: 방금 전</p>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
                 <X size={24} />
@@ -79,10 +104,17 @@ export function SeniorProfileModal({ isOpen, onClose, senior }: ModalProps) {
               <div className="absolute -top-3 left-4 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
                 <Info size={12} fill="currentColor" /> AI 건강 요약
               </div>
-              <div className="bg-primary/5 p-6 pt-8 rounded-2xl border border-primary/10">
-                <p className="text-slate-700 text-base leading-relaxed font-medium">
-                  "{senior.name} 어르신은 최근 이틀간 <span className="text-error font-bold">혈압이 평소보다 높은 편</span>입니다. 특히 밤중에 잠을 깊게 못 주무시는 것으로 보이는데, 이것이 혈압에 영향을 줄 수 있습니다. 식사 시 짜게 드시지 않도록 주의가 필요하며, 편안한 수면 환경을 만들어 드리는 것이 좋겠습니다."
-                </p>
+              <div className="bg-primary/5 p-6 pt-8 rounded-2xl border border-primary/10 min-h-[100px] flex items-center">
+                {isLoading ? (
+                  <div className="flex items-center gap-3 text-primary font-bold text-sm">
+                    <Loader2 className="animate-spin" size={18} />
+                    Gemini AI가 건강 데이터를 분석하고 있습니다...
+                  </div>
+                ) : (
+                  <p className="text-slate-700 text-base leading-relaxed font-medium">
+                    {aiSummary || "데이터를 불러오는 중입니다."}
+                  </p>
+                )}
               </div>
             </div>
 
